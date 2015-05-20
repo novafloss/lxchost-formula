@@ -1,0 +1,16 @@
+auto {{ iface }}
+iface {{ iface }} inet static
+      bridge_fd 0
+      bridge_maxwait 0
+      bridge_ports none
+      address {{ address }}
+      netmask {{ netmask }}
+      dns-nameservers {{ nameservers|join(' ') }}
+      post-up iptables -A FORWARD -i {{ iface }} -s {{ network }}/24 -j ACCEPT
+      post-down iptables -D FORWARD -i {{ iface }} -s {{ network }}/24 -j ACCEPT
+      post-up iptables -A POSTROUTING -t nat -s {{ network }}/24 -j MASQUERADE
+      post-down iptables -D POSTROUTING -t nat -s {{ network }}/24 -j MASQUERADE
+      post-up iptables -A POSTROUTING -t mangle -p udp --dport bootpc -s {{ network }}/24 -j CHECKSUM --checksum-fill
+      post-down iptables -D POSTROUTING -t mangle -p udp --dport bootpc -s {{ network }}/24 -j CHECKSUM --checksum-fill
+      post-up dnsmasq --interface={{ iface }} --conf-file=/etc/lxc/dnsmasq.conf --pid-file=/var/run/lxc-dnsmasq.pid
+      post-down kill $(cat /var/run/lxc-dnsmasq.pid)
