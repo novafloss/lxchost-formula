@@ -1,0 +1,10 @@
+lxchost:
+  gateway: 10.1.1.254
+  iface: lxcbr1
+  lease_time: 5m
+  nameservers:
+    - 8.8.8.8
+    - 8.8.4.4
+  netmask: 255.255.255.0
+  network: 10.1.1.0
+  range: 10.1.1.100,10.1.1.200
