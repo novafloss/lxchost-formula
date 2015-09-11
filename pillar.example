@@ -8,3 +8,5 @@ lxchost:
   netmask: 255.255.255.0
   network: 10.1.1.0
   range: 10.1.1.100,10.1.1.200
+  test_url: http://bootstrap.saltstack.org/
+  domain: ci
