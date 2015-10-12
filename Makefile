@@ -9,7 +9,7 @@ all:
 setup:
 	apt-get -qy update
 	apt-get install -y curl
-	curl -qL http://bootstrap.saltstack.org | sh -s -- stable
+	curl -qL http://bootstrap.saltstack.org | sh -s -- -P stable
 
 .PHONY: call
 call:
