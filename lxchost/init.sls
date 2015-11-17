@@ -14,6 +14,8 @@ lxc_pkgs:
       - dnsmasq
       - iptables
       - lxc
+      # Required for template download
+      - wget
     - install_recommends: False
     - reload_modules: True
 
