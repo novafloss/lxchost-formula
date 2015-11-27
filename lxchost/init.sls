@@ -18,6 +18,9 @@ lxc_pkgs:
       - wget
     - install_recommends: False
     - reload_modules: True
+    {% if grains['oscodename'] in ['wheezy'] -%}
+    - fromrepo: {{ grains['oscodename'] }}-backports
+    {%- endif %}
 
 disable_dnsmasq:
   service.dead:
@@ -58,7 +61,24 @@ interfaces-d:
 source-interfaces-d:
   file.append:
     - name: /etc/network/interfaces
+    {%- if grains['oscodename'] in ['wheezy'] %}
+    - text: source /etc/network/interfaces.d/*
+    - onlyif: grep -vq "^source " /etc/network/interfaces
+    {%- else %}
     - text: source-directory interfaces.d
+    {%- endif %}
+
+{% if grains['oscodename'] in ['wheezy'] %}
+cgroups-fstab-f:
+  file.append:
+    - name: /etc/fstab
+    - text: cgroup /sys/fs/cgroup cgroup defaults 0 0
+  cmd.run:
+    - name: mount /sys/fs/cgroup
+    - unless: ls /sys/fs/cgroup/net*
+    - require:
+      - file: cgroups-fstab-f
+{% endif %}
 
 interface-file:
   file.managed:
