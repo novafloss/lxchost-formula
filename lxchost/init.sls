@@ -20,7 +20,7 @@ disable_dnsmasq:
     - name: dnsmasq
     - enable: False
 
-{% if 'sysctl' in salt -%}
+{% if salt.get('sysctl.persist') -%}
 conf_sysctl:
   sysctl.present:
     - name: net.ipv4.ip_forward
