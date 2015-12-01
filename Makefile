@@ -11,13 +11,9 @@ setup:
 	apt-get install -y curl
 	curl -qL http://bootstrap.saltstack.org | sh -s -- -P stable
 
-.PHONY: call
-call:
-	$(SALT_CALL) state.sls lxchost
-
 .PHONY: test
 test:
 	$(SALT_CALL) state.show_sls lxchost
-	$(MAKE) call
+	$(SALT_CALL) state.sls lxchost
 	$(SALT_CALL) state.sls lxchost test=True | tee /tmp/second
 	! grep -q "^Not Run:" /tmp/second
