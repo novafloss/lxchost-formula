@@ -1,11 +1,4 @@
-{% set gateway = salt['pillar.get']('lxchost:address', '10.0.4.254') -%}
-{% set iface = salt['pillar.get']('lxchost:iface', 'lxcbr0') -%}
-{% set lease_time = salt['pillar.get']('lxchost:lease_time', '15m') -%}
-{% set nameservers = salt['pillar.get']('lxchost:nameservers', ['8.8.8.8']) -%}
-{% set netmask = salt['pillar.get']('lxchost:netmask', '255.255.255.0') -%}
-{% set network = salt['pillar.get']('lxchost:network', '10.0.4.0') -%}
-{% set range = salt['pillar.get']('lxchost:range', '10.0.4.1,10.0.4.250') -%}
-{% set etcdir = salt['pillar.get']('lxchost:etcdir', '/etc/lxc') -%}
+{% from 'lxchost/map.jinja' import lxchost -%}
 
 lxc_pkgs:
   pkg.installed:
@@ -27,31 +20,28 @@ disable_dnsmasq:
     - name: dnsmasq
     - enable: False
 
+{% if salt.get('sysctl.persist') -%}
 conf_sysctl:
   sysctl.present:
     - name: net.ipv4.ip_forward
     - value: 1
+{%- endif %}
 
 etclxc:
   file.directory:
-    - name: {{ etcdir }}
+    - name: /etc/lxc
 
 default:
   file.managed:
-    - name: {{ etcdir }}/default.conf
+    - name: /etc/lxc/default.conf
     - source: salt://lxchost/lxc.conf
     - template: jinja
-    - defaults:
-        bridge: {{ iface }}
 
 conf_lxc_dnsmasq:
   file.managed:
-    - name: {{ etcdir }}/dnsmasq.conf
+    - name: /etc/lxc/dnsmasq.conf
     - source: salt://lxchost/dnsmasq.conf
     - template: jinja
-    - defaults:
-        range: {{ range }}
-        lease_time: {{ lease_time }}
 
 interfaces-d:
   file.directory:
@@ -86,25 +76,25 @@ interface-file:
     - source: salt://lxchost/interfaces
     - template: jinja
     - mode: 0644
-    - defaults:
-        address: {{ gateway }}
-        iface: {{ iface }}
-        network: {{ network }}
-        netmask: {{ netmask }}
-        nameservers:
-{%- for nameserver in nameservers %}
-          - {{ nameserver }}
-{%- endfor %}
 
-down_{{ iface }}:
+down_{{ lxchost.iface }}:
   cmd.wait:
-    - name: ifdown {{ iface }}
+    - name: ifdown {{ lxchost.iface }}
     - watch:
       - file: interface-file
-    - onlyif: test -f /sys/devices/virtual/net/{{ iface }}/bridge/bridge_id
+    - onlyif: test -f /sys/devices/virtual/net/{{ lxchost.iface }}/bridge/bridge_id
 
-up_{{ iface }}:
+up_{{ lxchost.iface }}:
   cmd.wait:
-    - name: ifup {{ iface }}
+    - name: ifup {{ lxchost.iface }}
     - watch:
       - file: interface-file
+
+resolvconf_update:
+  cmd.run:
+    - name: resolvconf -u
+    - onlyif: which resolvconf
+
+wait_network:
+  cmd.run:
+    - name: curl --silent --show-error --retry 300 --retry-delay 1 --fail -I {{ lxchost.test_url }}
