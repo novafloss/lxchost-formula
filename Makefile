@@ -17,3 +17,7 @@ test:
 	$(SALT_CALL) state.sls lxchost
 	$(SALT_CALL) state.sls lxchost test=True | tee /tmp/second
 	! grep -q "^Not Run:" /tmp/second
+
+.PHONY: test-ci
+test-ci:
+	$(SALT_CALL) state.show_sls lxchost

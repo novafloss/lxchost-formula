@@ -10,10 +10,8 @@ env:
 install:
   # Since LXC is not supported on travis OpenVZ, we disable it before
   # installation.
-  - echo manual | sudo tee /etc/init/lxc-net.override
-  - echo manual | sudo tee /etc/init/lxc.override
   - sudo make setup
   - sudo salt-call --local --grains
 
 script:
-  - sudo make test
+  - sudo make test-ci
