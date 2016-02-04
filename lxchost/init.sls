@@ -84,11 +84,16 @@ down_{{ lxchost.iface }}:
       - file: interface-file
     - onlyif: test -f /sys/devices/virtual/net/{{ lxchost.iface }}/bridge/bridge_id
 
-up_{{ lxchost.iface }}:
+reup_{{ lxchost.iface }}:
   cmd.wait:
     - name: ifup {{ lxchost.iface }}
     - watch:
       - file: interface-file
+
+up_{{ lxchost.iface }}:
+  cmd.run:
+    - name: ifup {{ lxchost.iface }}
+    - unless: test -f /sys/devices/virtual/net/{{ lxchost.iface }}/bridge/bridge_id
 
 resolvconf_update:
   cmd.run:
